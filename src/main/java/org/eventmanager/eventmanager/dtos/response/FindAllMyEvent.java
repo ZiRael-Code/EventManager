@@ -9,7 +9,7 @@ import java.util.List;
 @Setter
 @Getter
 @AllArgsConstructor
-public class FindAllEvent {
+public class FindAllMyEvent {
     List<Event> eventList;
 
 }

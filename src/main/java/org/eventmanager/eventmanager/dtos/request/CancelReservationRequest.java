@@ -1,2 +1,5 @@
-package org.eventmanager.eventmanager.dtos.request;public class CancelReservationRequest {
+package org.eventmanager.eventmanager.dtos.request;
+
+public class CancelReservationRequest extends FindReservationRequest{
+
 }

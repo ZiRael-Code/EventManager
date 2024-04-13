@@ -1,2 +1,7 @@
-package org.eventmanager.eventmanager.exception;public class InvalidPasswordException {
+package org.eventmanager.eventmanager.exception;
+
+public class InvalidPasswordException extends Exception{
+    public InvalidPasswordException(String message) {
+        super(message);
+    }
 }

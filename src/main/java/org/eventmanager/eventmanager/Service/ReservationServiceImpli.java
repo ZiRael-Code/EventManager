@@ -2,6 +2,7 @@ package org.eventmanager.eventmanager.Service;
 
 import jakarta.transaction.Transactional;
 import org.eventmanager.eventmanager.Data.model.Attendees;
+import org.eventmanager.eventmanager.Data.model.Category;
 import org.eventmanager.eventmanager.Data.model.Event;
 import org.eventmanager.eventmanager.Data.model.Reservation;
 import org.eventmanager.eventmanager.Data.repository.ReservationRepo;
@@ -51,9 +52,12 @@ public class ReservationServiceImpli implements ReservationService{
             reservation.setAttendeeId(attendeesService.findAttendees(makeReservationRequest.getEmail()));
             reservation.setEventDate(event.getEventDate());
             reservation.setTicket(ticketMade);
+            reservation.setCategory(event.getCategory());
+            reservation.setDescription(event.getDescription());
+            reservation.setEventName(event.getName());
 
             Attendees user = service.findAttendees(makeReservationRequest.getEmail());
-
+            notificationService.checkAndSendNotificationToAttendeesForAlmostDueBookedEvent(user.getReservationMade());
             notificationService.sendNotificationToAttendeesForBookedEvent(reservation);
 
             return responseMapper.reservationMap(reservationRepo.save(reservation),user.getReservationMade());
@@ -64,9 +68,15 @@ public class ReservationServiceImpli implements ReservationService{
 
     @Override
     public GeneralResponse cancelReservation(CancelReservationRequest request) throws InvalidCategoryException, UserNotFoundException {
-        Reservation reservation = viewReservation(request);
-            reservationRepo.deleteById(reservation.getId());
-         return new GeneralResponse("Reservation deleted success");
+        Optional<Reservation> reservation = reservationRepo.findReservationByEventNameAndCategory(request.getName(), request.getCategory());
+
+        if (reservation.isPresent()){
+            reservationRepo.deleteById(reservation.get().getId());
+            notificationService.sendCancelReservationNotification();
+            return new GeneralResponse("Reservation deleted success");
+        }else {
+            throw new RuntimeException("reservation not found ");
+        }
     }
 
     @Override
@@ -82,5 +92,10 @@ public class ReservationServiceImpli implements ReservationService{
     public List<Reservation> viewAllReservation(Attendees attendees) {
         Optional<List<Reservation>> reservations = reservationRepo.findAllByAttendeeId(attendees);
         return reservations.get();
+    }
+
+    @Override
+    public List<Reservation> findAll(){
+        return reservationRepo.findAll();
     }
 }
